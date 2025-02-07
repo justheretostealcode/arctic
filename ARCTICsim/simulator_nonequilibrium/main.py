@@ -28,8 +28,8 @@ def sim_run(lineargs, json_str=None):
     sim_settings = {}
     sim_settings.update(settings)
     sim_settings.pop("structure")
-    sim_settings_update = {k: v for k, v in vars(argp.parse_args(shlex.split(args, posix=False))).items() if
-                           v is not None}
+    sim_settings_update = {k: v for k, v in vars(argp.parse_args(shlex.split(args, posix=False))).items()
+                           if v is not None}
     sim_settings.update(sim_settings_update)
     assignment_string = sim_settings["assignment"]
 
@@ -44,7 +44,7 @@ def sim_run(lineargs, json_str=None):
     assignment = CircuitAssignment(json_file=json_assignment, gate_lib=evaluator.gate_lib)
 
     old_structure = evaluator.structure
-    if "structure" in sim_settings:
+    if "structur" in sim_settings:
         structure = load_structure(sim_settings)
         evaluator.set_structure(structure)
 

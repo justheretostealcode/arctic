@@ -101,8 +101,9 @@ public class SimulatorInterfaceEnergy {
             if (!simProcess.isAlive()) {
                 logger.error("Simulator exited before simulation start:\n" + getError());
                 shutdown();
-                return 0.0;
+                return -1.19291923;
             }
+            // long start = System.nanoTime();
 
             String assignmentStr = mapper.writeValueAsString(assignment.getIdentifierMap());
 
@@ -138,6 +139,10 @@ public class SimulatorInterfaceEnergy {
 
             score = result.get("functional_score").iterator().next().asDouble();
             setEnergy(result.get("energy_score").asDouble());
+
+            // long end = System.nanoTime();
+            // long duration = end - start;
+            // System.out.printf("Duration: %f\n", duration * Math.pow(10, -9));
 
         } catch (Exception e) {
             e.printStackTrace();

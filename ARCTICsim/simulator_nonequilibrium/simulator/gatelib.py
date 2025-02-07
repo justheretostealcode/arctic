@@ -223,6 +223,7 @@ class Promoter(GateLibModelEntry):
 
         self.cognate_transcription_factors = gate_lib_entry_dict["cognate_transcription_factors"]
         self.sequence_ids = gate_lib_entry_dict["sequence_ids"]
+        self.technology_mapping = gate_lib_entry_dict["technology_mapping"]
         # A single construct can be asssociated to multiple sequences (for example codon alternatives)
 
     def _populate_model(self):

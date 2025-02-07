@@ -111,6 +111,7 @@ class GeneticLogicCircuit:
         self.cell_state = None
         self.energy_rate = np.nan
         self.energy_rates = None
+        self.energy_per_gate = None
         # Derives gene circuit's structure from genetic gate circuit's structure
         genes, gene_propagation_graph = self.setup_gene_circuit_structure()
         self.genes = genes
@@ -190,6 +191,7 @@ class GeneticLogicCircuit:
         energy_consumption = self.gene_circuit.energy_consumption
         self.energy_rate = -cell_state["energy"]
         self.energy_rates = np.array([energy_consumption[key] for key in ["promoter", "rna", "protein"]])
+        self.energy_per_gate = energy_per_gate
         self.cell_state = cell_state
         return gate_output_vals
 

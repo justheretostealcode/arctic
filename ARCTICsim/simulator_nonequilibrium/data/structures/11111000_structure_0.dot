@@ -1,20 +1,12 @@
 strict digraph G {
-  NOT_1 [ label="NOT
-NOT_1" ];
-  b [ label="INPUT
-b" ];
-  NOR2_6 [ label="NOR2
-NOR2_6" ];
-  NOR2_7 [ label="NOR2
-NOR2_7" ];
-  c [ label="INPUT
-c" ];
-  NOR2_8 [ label="NOR2
-NOR2_8" ];
-  OUTPUT_OR2_9 [ label="OUTPUT_OR2
-OUTPUT_OR2_9" ];
-  a [ label="INPUT
-a" ];
+  NOT_1 [ label="NOT NOT_1" ];
+  b [ label="INPUT b" ];
+  NOR2_6 [ label="NOR2 NOR2_6" ];
+  NOR2_7 [ label="NOR2 NOR2_7" ];
+  c [ label="INPUT c" ];
+  NOR2_8 [ label="NOR2 NOR2_8" ];
+  OUTPUT_OR2_9 [ label="OUTPUT_OR2 OUTPUT_OR2_9" ];
+  a [ label="INPUT a" ];
   b -> NOT_1 [ label="" ];
   b -> NOR2_6 [ label="" ];
   NOR2_6 -> NOR2_7 [ label="" ];

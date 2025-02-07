@@ -55,6 +55,7 @@ class FunctionalScore:
             score = np.median(dataON) / np.median(dataOFF)
         else:
             score = -9999  # (np.mean(dataON) - np.mean(dataOFF)) ** 2    # Error Code if no appropriate score is used
+            raise Exception(f"Score {DIST} not supported")
         return score
 
 
@@ -71,7 +72,7 @@ class EnergyScore:
         elif "sum" == settings["energy_score"]:
             comprehension_func = np.sum
         else:
-            raise Exception(f"Score {settings['score']} not supported")
+            raise Exception(f"Score {settings['energy_score']} not supported")
 
         self.comprehension_func = comprehension_func
 

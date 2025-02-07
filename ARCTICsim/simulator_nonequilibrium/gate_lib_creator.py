@@ -575,7 +575,7 @@ def match_promoter(response_characteristic: dict,
 
             # bounds = [(y_on, y_on), (y_off, y_off)] + [[-5, 5] for _ in range(14)]
             # bounds = [(y_on, y_on), (y_off * 0.5, y_off)] + [[-5, 5] for _ in range(14)]
-            bounds = [(y_on, y_on * 2), (y_off * 0.5, y_off)] + [[-5, 5] for _ in range(num_params - 2)]
+            # bounds = [(y_on, y_on * 2), (y_off * 0.5, y_off)] + [[-5, 5] for _ in range(num_params - 2)]
             bounds = [(y_on, y_on * 2), (y_off * 0.5, y_off)] + [[-5, 5] for _ in range(num_params - 2)]
             # training_data = [np.array([X[0], X[-1]]), np.array([Y[0], Y[-1]])]
             training_data = {"X": X,

@@ -96,6 +96,7 @@ public class SimulatedAnnealingSearch extends AssignmentSearchAlgorithm  {
         List<MappingResult> paretoResults = new ArrayList<>();
         ObjectMapper mapper = new ObjectMapper();
 
+        logger.info("pareto run for " + structure.getIdentifier() + " with " + steps + " steps:");
         logger.info("upper energy, functional, energy, assignment");
 
         for (Future<MappingResult> result : results) {
@@ -251,6 +252,10 @@ public class SimulatedAnnealingSearch extends AssignmentSearchAlgorithm  {
             if (printTrajectory) {
                 out.println(simCount + "," + neighborScore + "," + temperature + "," + radius + "," + acceptanceRate);
                 out.flush();
+            }
+
+            if (simCount % 1000 == 0) {
+                logger.info(String.format("Iteration: %d", simCount));
             }
         }
 

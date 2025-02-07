@@ -81,10 +81,13 @@ class CircuitEvaluator:
         nrows = int(np.floor(np.sqrt(num_gates)))
         ncols = int(np.ceil(num_gates / nrows))
 
+        n_input_assignments = len(truthtable.input_output_truthtable())
+        gate_output_vals = [None] * n_input_assignments
         circuit_output_vals_dict = {out_id: [[] for _ in range(2)] for out_id in structure.outputs}
-        circuit_output_vals = []
-        circuit_energy_rates = []
-        detailed_circuit_energy_rates = []
+        circuit_output_vals = [None] * n_input_assignments
+        circuit_energy_rates = [None] * n_input_assignments
+        detailed_circuit_energy_rates = [None] * n_input_assignments
+        energy_per_gate = [None] * n_input_assignments
 
         input_ids = list(structure.inputs)
         output_ids = list(structure.outputs)
@@ -115,19 +118,22 @@ class CircuitEvaluator:
             cur_gate_output_vals = circuit(input_vals_dict=input_vals_dict, sim_settings=sim_settings)
             cur_energy_rate = circuit.energy_rate
             cur_detailed_energy_rates = circuit.energy_rates
+            cur_energy_per_gate = circuit.energy_per_gate
 
-            gate_output_vals = cur_gate_output_vals
+            # gate_output_vals = cur_gate_output_vals
+            gate_output_vals[iIndex] = cur_gate_output_vals
             energy_rates = cur_energy_rate
             detailed_energy_rates = cur_detailed_energy_rates
 
             cur_out_vals = []
             for out_id in output_ids:
-                circuit_output_vals_dict[out_id][output_val].append(gate_output_vals[out_id])
-                cur_out_vals.append(gate_output_vals[out_id])
+                circuit_output_vals_dict[out_id][output_val].append(cur_gate_output_vals[out_id])
+                cur_out_vals.append(cur_gate_output_vals[out_id])
 
-            circuit_output_vals.append(cur_out_vals)
-            circuit_energy_rates.append(energy_rates)
-            detailed_circuit_energy_rates.append(detailed_energy_rates)
+            circuit_output_vals[iIndex] = cur_out_vals
+            circuit_energy_rates[iIndex] = energy_rates
+            detailed_circuit_energy_rates[iIndex] = detailed_energy_rates
+            energy_per_gate[iIndex] = cur_energy_per_gate
 
             if self.DEBUG_LEVEL > 0:
                 print(f"\nInput Combination {input_vals_dict} -> Logic Val {output_val}")
@@ -144,7 +150,7 @@ class CircuitEvaluator:
                             if cur_index < len(node_ids):
                                 ax = axes[iR, iC]
                                 node_id = node_ids[cur_index]
-                                cur_vals = gate_output_vals[node_id]
+                                cur_vals = cur_gate_output_vals[node_id]
                                 bool_val = structure.gate_truthtables[node_id][iIndex]
                                 ax.hist(cur_vals, bins=bins, density=False, color="red" if bool_val == 0 else "blue")
                                 ax.set_title(f"{node_id} ({bool_val})")
@@ -183,7 +189,8 @@ class CircuitEvaluator:
             critical_indexes[out_id] = {0: critical_index_off, 1: critical_index_on}
 
             if self.DEBUG_LEVEL >= 2:
-                print("Extreme Vals:", np.median(cur_entry[0][critical_index_off]),np.median(cur_entry[1][critical_index_on]) )
+                print("Extreme Vals:", np.median(cur_entry[0][critical_index_off]),
+                      np.median(cur_entry[1][critical_index_on]))
                 fig, axes = plt.subplots(nrows=len(truthtable.truthtable), sharex=True, sharey=False)
                 for iE, elem in enumerate(circuit_output_vals):
                     ax = axes[iE]
@@ -202,5 +209,18 @@ class CircuitEvaluator:
         scores = {"functional_score": functional_scores,
                   "energy_score": energy_score,
                   "detailed_energy_score": detailed_energy_score}
+
+        if False:
+            import pandas as pd
+            import pathlib
+            assignment_name = pathlib.Path(sim_settings["assignment"]).stem
+            df = pd.DataFrame(energy_per_gate)
+            df2 = df.map(lambda elem: sum(elem.values()).item())
+            df2.to_excel(f"data/_output/energy_per_gate_{assignment_name}.xlsx", index=False)
+
+            df = pd.DataFrame(gate_output_vals)
+            df2 = df.map(lambda elem: sum(elem).item())
+            df2.to_excel(f"data/_output/gate_output_vals_{assignment_name}.xlsx", index=False)
+
 
         return scores

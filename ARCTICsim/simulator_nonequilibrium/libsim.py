@@ -15,6 +15,7 @@ import os
 import sys
 from copy import copy, deepcopy
 
+
 # The interfacing in the simulator methods and marshalling and demarshalling
 # of objects is based on json. Therefor, all classes can be generated from
 # files or strings handed over via command line. To make the objects writable
@@ -35,9 +36,9 @@ from copy import copy, deepcopy
 #             - library
 #         - functions:
 
-#____________________________________________________________________________
+# ____________________________________________________________________________
 #   Globals and general purpose short-cuts
-#____________________________________________________________________________
+# ____________________________________________________________________________
 
 
 class bcolors:
@@ -51,17 +52,21 @@ class bcolors:
     BOLD = '\033[1m'
     UNDERLINE = '\033[4m'
 
+
 def hl(word):
     return bcolors.WARNING + str(word) + bcolors.ENDC
+
 
 def head(word):
     return bcolors.OKCYAN + str(word) + bcolors.ENDC
 
+
 DEBUG_LEVEL = 0
 
-#____________________________________________________________________________
+
+# ____________________________________________________________________________
 #   Technology mapping interface related classes
-#____________________________________________________________________________
+# ____________________________________________________________________________
 
 # class simulator_settings(dict):
 #     def __init__(self, *arg, **kw):
@@ -73,6 +78,7 @@ class execution_wrapper:
         self.pre = dict({k: (lambda *args, **kwargs: (args, kwargs)) for k, v in self.main.items()})
         self.post = dict({k: (lambda ret: ret) for k, v in self.main.items()})
         self.compose = dict({k: [True, True] for k in self.main.keys()})
+
     def register_pre(self, key, key_or_fun, compose=True):
         if isinstance(key_or_fun, str) and key_or_fun in self.main.keys():
             self.pre[key] = self.main[key_or_fun]
@@ -81,6 +87,7 @@ class execution_wrapper:
         else:
             raise ValueError('Supplied argument is neither callable nor a registered function.')
         self.compose[key][0] = compose
+
     def register_post(self, key, key_or_fun, compose=True):
         if isinstance(key_or_fun, str) and key_or_fun in self.main.keys():
             self.post[key] = self.main[key_or_fun]
@@ -89,6 +96,7 @@ class execution_wrapper:
         else:
             raise ValueError('Supplied argument is neither callable nor a registered function.')
         self.compose[key][1] = compose
+
     def call(self, key, *args, **kwargs):
         if key not in self.main:
             raise ValueError('Function name to be called unknown.')
@@ -103,7 +111,6 @@ class execution_wrapper:
         return self.post[key]()
 
 
-
 class communication_wrapper:
     def __init__(self, input_file, output_file, prefix=None):
         self.i = None
@@ -112,23 +119,26 @@ class communication_wrapper:
         if input_file is None:
             self.i = sys.stdin
         else:
-            pass # stored and temporary files not supported yet
+            pass  # stored and temporary files not supported yet
         if output_file is None:
             self.o = sys.stdout
         else:
-            pass # stored and temporary files not supported yet
+            pass  # stored and temporary files not supported yet
+
     def readline(self):
         # first signal, that you are ready, by printing the prefix
         if self.prefix is not None:
             self.o.write(self.prefix + ' ')
             self.o.flush()
         return self.i.readline()
+
     def writeline(self, line):
         self.o.write(line + '\n')
 
-#____________________________________________________________________________
+
+# ____________________________________________________________________________
 #   Circuit related classes and functions
-#____________________________________________________________________________
+# ____________________________________________________________________________
 
 # input encoding dict
 _input_encoding = dict({
@@ -136,6 +146,7 @@ _input_encoding = dict({
     'b': 1,
     'c': 2
 })
+
 
 # A structure for a NOR circuit
 # we try it here with a fixed TF-order and all information
@@ -155,9 +166,9 @@ class nor_circuit:
         for dev, parts in self.lib.devices.items():
             for tf in parts['tfs']:
                 self.tf_idx[tf] += tuple(self.p_idx[p] for p in parts['promoters'])
-                #print('tf idx for ' + tf + ': ' + str(self.tf_idx[tf]))
+                # print('tf idx for ' + tf + ': ' + str(self.tf_idx[tf]))
             self.dev_idx[dev] = tuple(self.p_idx[p] for p in parts['promoters'])
-            #print('device idx for ' + dev + ': ' + str(self.dev_idx[dev]))
+            # print('device idx for ' + dev + ': ' + str(self.dev_idx[dev]))
 
         # get factors for all possible promoters
         self.factors = np.zeros([2, len(self.p_idx), len(self.p_idx)])
@@ -168,9 +179,9 @@ class nor_circuit:
             self.extremes[self.p_idx[p], 0] = float(d['typical']['off'])
             self.affinities[self.p_idx[p]] = float(d['f']['rnap'])
             for tf in self.tf_idx.keys():
-                #print(tf + ' at ' + str(self.tf_idx[tf][0]) + ' associated with ' + p + ' at ' + str(self.p_idx[p]))
+                # print(tf + ' at ' + str(self.tf_idx[tf][0]) + ' associated with ' + p + ' at ' + str(self.p_idx[p]))
                 for pix in self.tf_idx[tf]:
-                    self.factors[0, self.p_idx[p], pix] = float(d['f']['rnap'])*float(d['f']['tf_rnap'][tf])
+                    self.factors[0, self.p_idx[p], pix] = float(d['f']['rnap']) * float(d['f']['tf_rnap'][tf])
                     self.factors[1, self.p_idx[p], pix] = float(d['f']['tf_only'][tf])
 
         # create now a total order of all locally available gates
@@ -190,7 +201,7 @@ class nor_circuit:
         self.dummy_idx = np.zeros(len(self.assignment.dummys), dtype=int)
         self.gates = np.array([None for _ in range(len(node_list))])  # array of objects
         for k, v in self.assignment.map_gtod.items():
-            #print('node/device: ' + hl(str(k)) + '/' + hl(str(v)) + ', node idx = ' + hl(str(self.node_idx[k])) + ', device idx = ' + hl(str(self.dev_idx[v][0])))
+            # print('node/device: ' + hl(str(k)) + '/' + hl(str(v)) + ', node idx = ' + hl(str(self.node_idx[k])) + ', device idx = ' + hl(str(self.dev_idx[v][0])))
             if v[0] == '_':  # dummy gate
                 self.g_p[self.node_idx[k]] = -1
                 self.dummy_idx[int(v[1])] = self.node_idx[k]
@@ -215,9 +226,12 @@ class nor_circuit:
                 self.g_p[self.node_idx[k]] = self.dev_idx[v][0]
                 self.p_g[self.dev_idx[v][0]] = self.node_idx[k]
                 # Find better solution to recognize YFP
-                self.gates[self.node_idx[k]] = _nor_gate(k, v, self.factors[:, self.dev_idx[v][0], :], self.affinities[self.dev_idx[v][0]], self.extremes[self.dev_idx[v][0], :], self.lib.env['reservoir'])
+                self.gates[self.node_idx[k]] = _nor_gate(k, v, self.factors[:, self.dev_idx[v][0], :],
+                                                         self.affinities[self.dev_idx[v][0]],
+                                                         self.extremes[self.dev_idx[v][0], :],
+                                                         self.lib.env['reservoir'])
         # also always create the artificial output gates (which are not in assignment)
-        #for k in list(self.structure.outputs):
+        # for k in list(self.structure.outputs):
         #    self.g_p[self.node_idx[k]] = -1
         #    self.gates[self.node_idx[k]] = _implicit_or_gate(k, 'simulation_monitor')
         # print all gates if debug level is above 0
@@ -251,7 +265,7 @@ class nor_circuit:
         new_a = np.copy(a)
         wa = np.dot(self.w.T, a)
         p_a = np.zeros(len(self.p_idx))
-        #print([(gate.node, self.node_idx[gate.node]) for gate in self.gates])
+        # print([(gate.node, self.node_idx[gate.node]) for gate in self.gates])
         for n in range(len(self.gates)):
             if self.g_p[n] != -1:
                 p_a[self.g_p[n]] += wa[n]
@@ -278,7 +292,9 @@ class nor_circuit:
             if DEBUG_LEVEL > 1:
                 print('Looking at node: ' + hl(self.gates[n].node))
             if DEBUG_LEVEL > 2:
-                print('Propagate: ' + hl(str(self.gates[n].node)) + '/' + hl(str(self.gates[n].dev)) + ', type = ' + str(self.gates[n].type) + ', env = ' + hl(str(self.bound_env[n])))
+                print(
+                    'Propagate: ' + hl(str(self.gates[n].node)) + '/' + hl(str(self.gates[n].dev)) + ', type = ' + str(
+                        self.gates[n].type) + ', env = ' + hl(str(self.bound_env[n])))
             p_a = np.zeros(len(self.p_idx))
             # get extreme inputs
             a_x = np.zeros(len(self.gates))
@@ -320,9 +336,12 @@ class nor_circuit:
                     if self.w[m, n] == 1:
                         val = 0
                         forced = False
-                        if force_env and self.gates[m].type == 0 and ((self.gates[n].type == 0 and self.bound_env[m] == self.bound_env[n]) or (self.gates[n].type == 1 and self.bound_env[m] != self.bound_env[n])):
+                        if force_env and self.gates[m].type == 0 and (
+                                (self.gates[n].type == 0 and self.bound_env[m] == self.bound_env[n]) or (
+                                self.gates[n].type == 1 and self.bound_env[m] != self.bound_env[n])):
                             forced_value = 0
-                            if (self.bound_env[n] == self.gates[n].type): # either NOR gate and 0-env or implicit OR gate and 1-env
+                            if (self.bound_env[n] == self.gates[
+                                n].type):  # either NOR gate and 0-env or implicit OR gate and 1-env
                                 forced_value = self.bound_a_max[m]
                             else:
                                 forced_value = self.bound_a_min[m]
@@ -335,13 +354,17 @@ class nor_circuit:
                                 val = self.gates[m].out(n, self.bound_env[n])
                         if DEBUG_LEVEL > 1:
                             if forced:
-                                print(hl(str(self.gates[m].node)) + ' -> ' + hl(str(self.gates[n].node)) + ' by wire with ' + head('forced') + ' value ' + hl(str(val)))
+                                print(hl(str(self.gates[m].node)) + ' -> ' + hl(
+                                    str(self.gates[n].node)) + ' by wire with ' + head('forced') + ' value ' + hl(
+                                    str(val)))
                             else:
-                                print(hl(str(self.gates[m].node)) + ' -> ' + hl(str(self.gates[n].node)) + ' by wire with value ' + hl(str(val)))
+                                print(hl(str(self.gates[m].node)) + ' -> ' + hl(
+                                    str(self.gates[n].node)) + ' by wire with value ' + hl(str(val)))
                         p_a[self.g_p[n]] += val
                     elif m != n:
                         if DEBUG_LEVEL > 1:
-                            print(hl(str(self.gates[m].node)) + ' -> ' + hl(str(self.gates[n].node)) + ' by crosstalk with value ' + hl(str(wa[m])))
+                            print(hl(str(self.gates[m].node)) + ' -> ' + hl(
+                                str(self.gates[n].node)) + ' by crosstalk with value ' + hl(str(wa[m])))
                         p_a[self.g_p[m]] += wa[m]
             # propagate the artificial environment through the gate
             if DEBUG_LEVEL > 2:
@@ -412,8 +435,8 @@ class circuit_structure:
                     self.gates.add(n['id'])
             self.nodes = self.inputs | self.gates | self.outputs
             self.gate_truthtables = dict()
-            for k, v in circ['gate_truthtables'].items():
-                self.gate_truthtables[k] = np.flip(np.array(list(map(int, v))))
+            # for k, v in circ['gate_truthtables'].items():
+            #     self.gate_truthtables[k] = np.flip(np.array(list(map(int, v))))
             self.internal_edges = set()
             self.outgoing_edges = set()
             self.adjacency = {'in': dict_from_list(self.nodes, set()), 'out': dict_from_list(self.nodes, set())}
@@ -429,8 +452,9 @@ class circuit_structure:
                 # elif e['target'] in self.outputs:
                 #     self.adjacency['out'][e['source']].add(e['target'])
             self.edges = set.union(self.internal_edges, self.outgoing_edges)
-            #self.dprint('\n\t+ Circuit has truthtable {f}, {u} inputs, {y} outputs, {n} intermediate nodes as well as {e} internal and {o} outgoing edges.'.format(f=hl(self.truthtable), u=hl(self.stats['n_inputs']), y=hl(self.stats['n_outputs']), n=hl(self.stats['n_nodes']), e=hl(len(self.internal_edges)), o=hl(len(self.outgoing_edges))))
+            # self.dprint('\n\t+ Circuit has truthtable {f}, {u} inputs, {y} outputs, {n} intermediate nodes as well as {e} internal and {o} outgoing edges.'.format(f=hl(self.truthtable), u=hl(self.stats['n_inputs']), y=hl(self.stats['n_outputs']), n=hl(self.stats['n_nodes']), e=hl(len(self.internal_edges)), o=hl(len(self.outgoing_edges))))
             self.valid = True
+
     def combinational_order(self):
         if self.order is None:
             self.order = list()
@@ -439,9 +463,11 @@ class circuit_structure:
                     if self.order[n] in self.adjacency['out'][gate]:
                         self.order.insert(n, gate)
         return self.order
+
     # return the JSON representation of this graph
     def __str__(self):
         pass
+
 
 # the assignment connects the library with the structure. It therefore needs to know both to sanity check
 class circuit_assignment:
@@ -462,6 +488,7 @@ class circuit_assignment:
             self.map_dtog[d] = k
         self.devices = set(self.map_dtog.keys())
         self.gates = set(self.map_dtog.values())
+
 
 class library:
     # represents a connected gate lib
@@ -500,6 +527,7 @@ class library:
                 self.env['reservoir'] = entry['non_specific_reservoir']
                 self.env['df'] = entry['env_tfs']
                 self.env['e'] = entry['reservoir_energies']
+
     # return the JSON representation of this lib
     def __str__(self):
         content = list()
@@ -532,6 +560,7 @@ class library:
         content[2]['reservoir_energies'] = self.env['e']
         return json.dumps(content)
 
+
 # PRIVATE. Not intended to use manually
 # The NOR gate is a simple, modular gate structure independent of input wiring
 class _nor_gate:
@@ -544,20 +573,25 @@ class _nor_gate:
         self.bepj = factors[0]
         self.bef = factors[1]
         self.bep = affinity
-        #self.dim = np.shape(factors[0])[1]
+        # self.dim = np.shape(factors[0])[1]
         self.c = c
         self.type = 0
+
     def out(self, wa):
-        #iwa = np.cumprod(np.repeat(wa[:, np.newaxis], self.dim, axis=1), axis=1)
+        # iwa = np.cumprod(np.repeat(wa[:, np.newaxis], self.dim, axis=1), axis=1)
         iwa = wa
         if DEBUG_LEVEL > 2:
-            print(str(self.c*self.bep + np.sum(iwa*self.bepj)) + '/' + str(self.c + np.sum(iwa*self.bef)) + ' = ' + hl(str((self.c + np.sum(iwa*self.bepj))/(self.c + np.sum(iwa*self.bef)))))
+            print(str(self.c * self.bep + np.sum(iwa * self.bepj)) + '/' + str(
+                self.c + np.sum(iwa * self.bef)) + ' = ' + hl(
+                str((self.c + np.sum(iwa * self.bepj)) / (self.c + np.sum(iwa * self.bef)))))
             if self.node == 'NOR2_2':
                 print(self.bepj)
                 print(self.bef)
-        return (self.c*self.bep + np.sum(iwa*self.bepj))/(self.c + np.sum(iwa*self.bef))
+        return (self.c * self.bep + np.sum(iwa * self.bepj)) / (self.c + np.sum(iwa * self.bef))
+
     def __str__(self):
         return self.name + ': ' + str(self.e)
+
 
 # PRIVATE. Not intended to use manually
 # The implicit OR gate is just a pseudo-gate, which outputs the YFP RPU
@@ -570,10 +604,13 @@ class _implicit_or_gate:
         self.min = 0
         self.max = 0
         self.b = factors.astype(bool)
+
     def out(self, wa):
         return np.sum(wa[self.b])
+
     def __str__(self):
         return self.name + ': None (implicit OR)'
+
 
 # PRIVATE. Not intended to use manually
 # The dummy gate is a placeholder, which always emits 0 but has initialised
@@ -587,12 +624,16 @@ class _dummy_gate:
         self.type = -1
         self.min = 0
         self.max = 0
+
     def out(self, g_idx, env):
         return self.codebook[g_idx, env, 0]
+
     def promoter(self, g_idx, env):
         return int(self.codebook[g_idx, env, 1])
+
     def __str__(self):
         return self.name + ': None (dummy gate, codebook size: ' + len(self.codebook[:, 0, 0]) + ')'
+
 
 # This solver does a fixed point iteration. Simplest solver thinkable
 # this dramatically reduced. Essentially only solve the propagate function
@@ -604,12 +645,15 @@ class nor_circuit_solver_banach:
         else:
             self.values = np.zeros(len(self.circuit))
         self.bound = bound
+
     def set_initial_value(self, initial_value):
         self.values = initial_value
+
     def bounding_mode(self, bound, heuristic=False):
         self.heuristic = heuristic
         self.bound = bound
-    def solve(self, tol=10**(-2), max_iter=100):
+
+    def solve(self, tol=10 ** (-2), max_iter=100):
         # Iterate the points using Banach's fixed point theorem
         # to estimate the error, compare old and new node values
         err = np.inf
@@ -633,15 +677,18 @@ class nor_circuit_solver_banach:
             self._debug_step(vs, run, err)
         self.values = vs
         return (vs, err, run)
+
     def _debug_step(self, vs, run, err):
-        print('---------\n' + head('Outputs') + ' (run ' + hl(str(run)) + ', err < ' + hl(str(err)) + ', logic = ' + hl(str(self.circuit.bound_env[self.circuit.node_idx[list(self.circuit.structure.outputs)[0]]])) + '): ')
+        print('---------\n' + head('Outputs') + ' (run ' + hl(str(run)) + ', err < ' + hl(str(err)) + ', logic = ' + hl(
+            str(self.circuit.bound_env[self.circuit.node_idx[list(self.circuit.structure.outputs)[0]]])) + '): ')
         for k, v in self.circuit.node_idx.items():
             if self.circuit.gates[self.circuit.node_idx[k]].type == 0:
-                print('{k:<30}'.format(k = hl(k) + ' (env = ' + str(self.circuit.bound_env[v]) + ')') + ': ' + hl(str(vs[v])))
+                print('{k:<30}'.format(k=hl(k) + ' (env = ' + str(self.circuit.bound_env[v]) + ')') + ': ' + hl(
+                    str(vs[v])))
             elif self.circuit.gates[self.circuit.node_idx[k]].type == -1:
-                print('{k:<30}'.format(k = hl(k)) + ': dummy')
+                print('{k:<30}'.format(k=hl(k)) + ': dummy')
             elif self.circuit.gates[self.circuit.node_idx[k]].type == 1:
-                print('{k:<30}'.format(k = hl(k) + ' (implicit or)') + ': ' + hl(str(vs[v])))
+                print('{k:<30}'.format(k=hl(k) + ' (implicit or)') + ': ' + hl(str(vs[v])))
 
 
 # This solver uses Newton's method. Reliable and fast (quadratic convergence)
@@ -649,9 +696,10 @@ class circuit_solver_newton:
     def __init__(self, inputs, tfs, gates):
         pass
 
-#____________________________________________________________________________
+
+# ____________________________________________________________________________
 #   File interfacing classes
-#____________________________________________________________________________
+# ____________________________________________________________________________
 
 class json_file:
     def __init__(self, path, read=True):
@@ -659,40 +707,49 @@ class json_file:
         self.content = None
         if read:
             self.read()
+
     def read(self, update=False):
         if self.content is None or update == True:
             with open(self.path, 'r') as fyle:
-                self.content = fyle.read().replace('\n', '')#json.load(fyle)
+                self.content = fyle.read().replace('\n', '')  # json.load(fyle)
+
     def write(self):
         with open(self.path, 'w') as fyle:
-            self.content = fyle.write(self.content)#json.dump(fyle)
+            self.content = fyle.write(self.content)  # json.dump(fyle)
 
-#____________________________________________________________________________
+
+# ____________________________________________________________________________
 #   Classes and functions for more abstract objects/tasks
-#____________________________________________________________________________
+# ____________________________________________________________________________
 
 class __directed_acyclic_graph:
     def __init__(self, nodes, edges):
         self.nodes = nodes
         self.edges = edges
+
     def is_valid(self):
         pass
 
+
 def __list_intersect(a, b):
     return list(set(a) & set(b))
+
 
 def _filter_dict(d, l, as_list=False, act=copy):
     if as_list:
         return [act(d[ll]) for ll in l if ll in d]
     return {ll: act(d[ll]) for ll in l if ll in d}
 
+
 def dict_like(d, fill=None):
     if not isinstance(v, dict):
         return copy(fill)
     return dict({k: dict_like(v, fill) for k, v in d.items()})
 
+
 def dict_from_list(l, fill=None):
     return dict({k: copy(fill) for k in l})
+
 
 # JIT friendly version of integer power
 def __power(bases, exponents):
