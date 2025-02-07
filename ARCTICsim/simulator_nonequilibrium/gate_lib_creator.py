@@ -472,7 +472,6 @@ def match_promoter(response_characteristic: dict,
 
         # genes
 
-
         error = loss + 0.1 * monotonicity_loss
         return error
 
@@ -563,19 +562,7 @@ def match_promoter(response_characteristic: dict,
             # Setup Parameter Matching Context #
             ####################################
 
-            # y_on = ref_params[0]
-            # y_off = ref_params[1]
-
-            # bounds = [(y_on, y_on * 10), (y_off * 0.1, y_off)] + [[10 ** (-5), 10 ** 5] for _ in range(14)]
             # # Imply inhibitory behaviour via bounds.
-            # bounds[3][0] = 2  # k03 > 10
-            # bounds[9][1] = 0.5  # k30 < 0.1
-            # bounds[8][1] = 0.5  # k25 < 0.1
-            # bounds[14][0] = 2  # k52 > 10
-
-            # bounds = [(y_on, y_on), (y_off, y_off)] + [[-5, 5] for _ in range(14)]
-            # bounds = [(y_on, y_on), (y_off * 0.5, y_off)] + [[-5, 5] for _ in range(14)]
-            # bounds = [(y_on, y_on * 2), (y_off * 0.5, y_off)] + [[-5, 5] for _ in range(num_params - 2)]
             bounds = [(y_on, y_on * 2), (y_off * 0.5, y_off)] + [[-5, 5] for _ in range(num_params - 2)]
             # training_data = [np.array([X[0], X[-1]]), np.array([Y[0], Y[-1]])]
             training_data = {"X": X,
@@ -587,14 +574,8 @@ def match_promoter(response_characteristic: dict,
             # initial_params are not None when they  are set to the params obtained in the previous run in the inner loop
             if initial_params is None:
                 initial_params = [y_on, y_off]
-                # initial_params += list(np.exp(np.random.rand(14) * 2 - 1))
                 initial_params += list(np.random.rand(num_params - 2) * 2 - 1)
                 initial_params = np.array(initial_params)
-                # new_params = initial_params
-                # initial_params[3] = 1
-                # initial_params[9] = -1
-                # initial_params[8] = -1
-                # initial_params[14] = 1
 
             ##############################
             # Perform Parameter Matching #
@@ -1007,19 +988,24 @@ if __name__ == '__main__':
             "cds": protein_entry,
             "promoter": promoter_entry,
             "name": gate_name}
+
         promoter_entry = match_promoter(response_characteristic=response_characteristic,
                                         reporter_information=reporter_information,
                                         input_information=input_information,
                                         gate_information=gate_information,
                                         match_input_sensor=False)
 
-        device_entry = get_device_entry(name=gate_name, group=cello_gate["group"], regulator=cello_gate["regulator"],
-                                        primitive_identifer=["NOT", "NOR2"], utr_id=utr_entry["identifier"],
-                                        cds_id=protein_entry["identifier"], promoter_id=promoter_entry["identifier"],
+        device_entry = get_device_entry(name=gate_name, group=cello_gate["group"],
+                                        regulator=cello_gate["regulator"],
+                                        primitive_identifer=["NOT", "NOR2"],
+                                        utr_id=utr_entry["identifier"],
+                                        cds_id=protein_entry["identifier"],
+                                        promoter_id=promoter_entry["identifier"],
                                         color=cello_gate["color"])
 
         custom_lib += [device_entry, utr_entry, protein_entry, promoter_entry]
         # custom_lib += [device_entry, protein_entry, promoter_entry]
+        custom_lib += [*promoter_sequence_entries, utr_sequence_entry, *protein_sequence_entries]
 
         # Next steps:
         # Match Characteristics of promoter to cytometry data
