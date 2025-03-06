@@ -16,6 +16,7 @@ from simulator.circuit_evaluator_new import CircuitEvaluator
 from simulator.circuit_utils import CircuitAssignment, load_structure
 from simulator.gatelib import GateLibCollectionBased
 from simulator.utils import JsonFile, communication_wrapper, load_settings, type_dict
+from utils.utils import CustomJsonEncoder
 
 here = op.dirname(op.abspath(inspect.getfile(inspect.currentframe())))
 version = '0.9'
@@ -44,7 +45,7 @@ def sim_run(lineargs, json_str=None):
     assignment = CircuitAssignment(json_file=json_assignment, gate_lib=evaluator.gate_lib)
 
     old_structure = evaluator.structure
-    if "structur" in sim_settings:
+    if "structure" in sim_settings:
         structure = load_structure(sim_settings)
         evaluator.set_structure(structure)
 
@@ -205,5 +206,5 @@ if __name__ == "__main__":
         func = command_dict[line_cmd][0]
 
         result = func(line_args)
-        json_content = json.dumps(result)
+        json_content = json.dumps(result, cls=CustomJsonEncoder)
         cli_io.writeline(json_content)

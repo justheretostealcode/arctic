@@ -7,63 +7,6 @@ from models.promoter_model_new import PromoterModel
 
 from simulator.utils import JsonFile
 
-
-# Class to represent the gatelib
-# @deprecated("Replaced by GateLibCollectionBased")
-# class GateLib:
-#     def __init__(self, json_file: JsonFile):
-#         #        raise Exception("Change to GateLibCollectionBased")
-#         self.json = json_file
-#
-#         if json_file is None:
-#             raise Exception("No Gate Library information provided!")
-#
-#         self.gates = []
-#         for gate_entry in json_file.data:
-#             gates = GateLib._populate_gate_entry(gate_entry)
-#             self.gates += gates
-#
-#         self.gates_by_type_and_name = {}
-#         for gate in self.gates:
-#             gate_type = gate.type
-#             ident = gate.identifier
-#             if gate_type not in self.gates_by_type_and_name:
-#                 self.gates_by_type_and_name[gate_type] = {}
-#
-#             if ident in self.gates_by_type_and_name[gate_type]:
-#                 raise Exception(f"{ident} is already in the lookup dict")
-#
-#             self.gates_by_type_and_name[gate_type][ident] = gate
-#         pass
-#
-#     @staticmethod
-#     def _populate_gate_entry(gate_entry):
-#         def _get_gate_implementation(gate_type):
-#             if gate_type == "NOT":
-#                 return NOTGate
-#             elif gate_type == "NOR2":
-#                 return NORGate
-#             elif gate_type == "INPUT":
-#                 return LutInput
-#             elif gate_type == "OUTPUT_OR2":
-#                 return OutputOR
-#             elif gate_type == "OUTPUT_BUFFER":
-#                 return OutputBuffer
-#             else:
-#                 raise Exception(f"Type \"{gate_type}\" not supported")
-#             pass
-#
-#         gates = []
-#
-#         for gate_type in gate_entry["primitiveIdentifier"]:
-#             gate_implementation = _get_gate_implementation(gate_type)
-#
-#             gate = gate_implementation(gate_entry)
-#             gates.append(gate)
-#
-#         return gates
-
-
 class GateLibCollectionBased:
 
     def __init__(self, json_file: JsonFile):
@@ -114,23 +57,6 @@ class GateLibCollectionBased:
             self.objects_by_collection[collection_type].append(object)
             self.objects_by_class[class_var].append(object)
 
-        # self.gates = []
-        # for gate_entry in json_file.data:
-        #     gates = GateLib._populate_gate_entry(gate_entry)
-        #     self.gates += gates
-        #
-        # self.gates_by_type_and_name = {}
-        # for gate in self.gates:
-        #     gate_type = gate.type
-        #     ident = gate.identifier
-        #     if gate_type not in self.gates_by_type_and_name:
-        #         self.gates_by_type_and_name[gate_type] = {}
-        #
-        #     if ident in self.gates_by_type_and_name[gate_type]:
-        #         raise Exception(f"{ident} is already in the lookup dict")
-        #
-        #     self.gates_by_type_and_name[gate_type][ident] = gate
-        pass
 
         self.completion()
 
@@ -340,15 +266,12 @@ class SensorPromoter(Promoter):
             cognate_inducer_concentration = np.expand_dims(cognate_inducer_concentration, -1)
             if quick_mode:
                 interpolations = steepnes * cognate_inducer_concentration[:1] + offset
-                # indicator_function_1 = cognate_inducer_concentration[:1] >= values[:, 0]
-                # indicator_function_1 = np.expand_dims(indicator_function_1, -1)
-                indicator_function_2 = cognate_inducer_concentration[:1] <= values[:, 0]
+                indicator_function = cognate_inducer_concentration[:1] <= values[:, 0]
             else:
                 interpolations = steepnes * cognate_inducer_concentration + offset
-                # indicator_function_1 = cognate_inducer_concentration >= values[:, 0]
-                indicator_function_2 = cognate_inducer_concentration <= values[:, 0]
+                indicator_function = cognate_inducer_concentration <= values[:, 0]
 
-            indicator_function = np.argmax(indicator_function_2, axis=1)
+            indicator_function = np.argmax(indicator_function, axis=1)
             interpolation_result = interpolations[np.arange(interpolations.shape[0]), indicator_function]
 
             if quick_mode:
@@ -370,40 +293,6 @@ class SensorPromoter(Promoter):
 
         return model
 
-
-#
-# class SmallMolecule(GateLibModelEntry):
-#
-#     def __init__(self, gate_lib_entry_dict: dict):
-#         self.collection_identifier = "small_molecules"
-#         super().__init__(collection_identifier=self.collection_identifier, gate_lib_entry_dict=gate_lib_entry_dict)
-#
-#         self.molecule_type = gate_lib_entry_dict["cognate_molecules"]
-#         self.cognate_molecules = gate_lib_entry_dict["cognate_molecules"]
-#
-#     def _populate_model(self):
-#         model_info = self.model_info
-#         raise Exception("Model is currently not populated")
-
-
-# class LutPromoter(GateLibModelEntry):
-#     def __init__(self, gate_lib_entry_dict: dict):
-#         self.collection_identifier = "lut_promoters"
-#         super().__init__(collection_identifier=self.collection_identifier, gate_lib_entry_dict=gate_lib_entry_dict)
-#
-#         self.cognate_transcription_factors = gate_lib_entry_dict["cognate_transcription_factors"]
-#         # The corresponding sequences are currently not included in the library.
-#         self.sequence_idds = []
-#
-#     def _populate_model(self):
-#         model_info = self.model_info
-#         LUT = {float(key): model_info["LUT"][key] for key in model_info["LUT"]}
-#
-#         # ToDo Check whether this works as intended
-#         # in_vals["c"] is the
-#         def model(in_vals, sim_settings=None): LUT[in_vals["c"]]
-#
-#         return model
 
 
 class CodingSequence(GateLibModelEntry):
@@ -487,54 +376,6 @@ class TranscriptionfactorInputs(Protein):
         return model
 
 
-# class RNADynamics(GateLibModelEntry):
-#     def __init__(self, gate_lib_entry_dict):
-#         self.collection_identifier = "rna_dynamics"
-#         super().__init__(collection_identifier=self.collection_identifier, gate_lib_entry_dict=gate_lib_entry_dict)
-#
-#     def _populate_model(self):
-#         model_info = self.model_info
-#         # Includes molecule dependent transcription, RNA degradation and the respective energy requirements and lengths.
-#
-#         transcription_rate = model_info["transcription_rate"]
-#         degradation_rate = model_info["degradation_rate"]
-#         energy_per_nucleotide = model_info["energy_per_nucleotide"]
-#         energy_per_rna = model_info["energy_per_rna"]
-#         length = model_info["length"]
-#         model = RNAMomentModel(transcription_rate, degradation_rate,
-#                                energy_per_nucleotide, energy_per_rna,
-#                                length)
-#         return model
-#
-#
-# class ProteinDynamics(GateLibModelEntry):
-#     def __init__(self, gate_lib_entry_dict):
-#         self.collection_identifier = "protein_dynamics"
-#         super().__init__(collection_identifier=self.collection_identifier, gate_lib_entry_dict=gate_lib_entry_dict)
-#
-#     def _populate_model(self):
-#         model_info = self.model_info
-#         # Includes molecule dependent translation, protein degradation and the respective energy requirements and lengths.
-#
-#         translation_rate = model_info["translation_rate"]
-#         degradation_rate = model_info["degradation_rate"]
-#         energy_per_amino_acid = model_info["energy_per_amino_acid"]
-#         energy_per_protein = model_info["energy_per_protein"]
-#         length = model_info["length"]
-#         model = ProteinMomentModel(translation_rate, degradation_rate,
-#                                    energy_per_amino_acid, energy_per_protein,
-#                                    length)
-#         return model
-
-
-# class Protein(GateLibModelEntry):
-#     def __init__(self, gate_lib_entry_dict):
-#         self.collection_identifier = "proteins"
-#         super().__init__(collection_identifier=self.collection_identifier, gate_lib_entry_dict=gate_lib_entry_dict)
-#
-#     def _populate_model(self):
-#         raise Exception("Not Implemented Yet")
-
 
 class Sequence(GateLibEntry):
     def __init__(self, gate_lib_entry_dict: dict,
@@ -544,8 +385,8 @@ class Sequence(GateLibEntry):
                          gate_lib_entry_dict=gate_lib_entry_dict,
                          gate_lib=gate_lib)
 
-        self.type = gate_lib_entry_dict["type"]
-        self.sequence = gate_lib_entry_dict["dna_sequence"]
+        # self.type = gate_lib_entry_dict["type"]
+        self.sequence = gate_lib_entry_dict["sequence"]
 
 
 class UTR(GateLibEntry):

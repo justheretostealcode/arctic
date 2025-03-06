@@ -210,17 +210,14 @@ class CircuitEvaluator:
                   "energy_score": energy_score,
                   "detailed_energy_score": detailed_energy_score}
 
-        if False:
-            import pandas as pd
-            import pathlib
-            assignment_name = pathlib.Path(sim_settings["assignment"]).stem
-            df = pd.DataFrame(energy_per_gate)
-            df2 = df.map(lambda elem: sum(elem.values()).item())
-            df2.to_excel(f"data/_output/energy_per_gate_{assignment_name}.xlsx", index=False)
-
-            df = pd.DataFrame(gate_output_vals)
-            df2 = df.map(lambda elem: sum(elem).item())
-            df2.to_excel(f"data/_output/gate_output_vals_{assignment_name}.xlsx", index=False)
+        """
+        Relevant quantities:
+        energy_per_gate
+        gate_output_vals        
+        """
+        if sim_settings["output"].lower() == "full":
+            scores["gate_output_vals"] = gate_output_vals
+            scores["energy_per_gate"] = energy_per_gate
 
 
         return scores
