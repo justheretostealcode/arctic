@@ -817,8 +817,8 @@ End of Paper data
 
 if __name__ == '__main__':
     # The cello for yeast library can be downloaded in
-    # the Supplementary Information section of https://www.nature.com/articles/s41564-020-0757-2#additional-information
-    cello_library_path = "data/reference_data/yeast/SC1C1G1T1.UCF.json"
+    # the Supplementary Information section of https://www.nature.com/articles/#s41564-020-0757-2#additional-information
+    cello_library_path = "ARCTICsim/simulator_nonequilibrium/data/yeast/SC1C1G1T1.UCF.json"
     cello_library_json = JsonFile(path=cello_library_path)
     cello_library = cello_library_json.data
     collections = set([elem["collection"] for elem in cello_library])
